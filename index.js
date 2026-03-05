@@ -1,163 +1,132 @@
-const { 
-  Client, 
-  GatewayIntentBits, 
-  EmbedBuilder,
-  SlashCommandBuilder,
-  Routes,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  PermissionsBitField
-} = require('discord.js');
+// ===========================
+// INDEX.JS COMPLETO - BOT VENTAS TMF
+// ===========================
 
-const { REST } = require('@discordjs/rest');
-require('dotenv').config();
+const { Client, Intents, MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
+const client = new Client({ intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILD_MEMBERS
+] });
 
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds, 
-    GatewayIntentBits.GuildMessages, 
-    GatewayIntentBits.MessageContent
-  ]
+const CHANNEL_VENTAS = "1472426456108761159"; // Canal de ventas
+const GIF_URL = "https://cdn.discordapp.com/attachments/1473556214251257856/1473557047760130149/f4f4af726dc651a4565f826aaff3ef6b.gif";
+
+// ===========================
+// BOT LISTO
+// ===========================
+client.once('ready', () => {
+    console.log(`Bot listo como ${client.user.tag}`);
 });
 
-// ===== EMBED + BOTONES PAYMENTS =====
-function createPaymentMessage() {
-
-  const embed = new EmbedBuilder()
-    .setColor('#0f0f0f')
-    .setTitle('💸 Angel Store | Official Payments')
-    .setDescription(`
-🇪🇸 Después de realizar el pago, envía el comprobante al staff.
-
-🇺🇸 After completing the payment, please send the receipt to staff.
-`)
-    .setImage('https://cdn.discordapp.com/attachments/1478818162106433618/1478821886493458574/angelgg.gif')
-    .setFooter({ text: 'Angel Store • Secure Payments' })
-    .setTimestamp();
-
-  const row = new ActionRowBuilder()
-    .addComponents(
-      new ButtonBuilder()
-        .setLabel('PayPal')
-        .setStyle(ButtonStyle.Link)
-        .setURL('https://www.paypal.me/Pogo2310'),
-
-      new ButtonBuilder()
-        .setLabel('Binance UID')
-        .setStyle(ButtonStyle.Secondary)
-        .setCustomId('binance'),
-
-      new ButtonBuilder()
-        .setLabel('Yappy')
-        .setStyle(ButtonStyle.Secondary)
-        .setCustomId('yappy'),
-
-      new ButtonBuilder()
-        .setLabel('Zelle')
-        .setStyle(ButtonStyle.Secondary)
-        .setCustomId('zelle')
-    );
-
-  return { embed, row };
-}
-
-// ===== EVENTO INTERACCIONES =====
+// ===========================
+// UN SOLO LISTENER PARA INTERACCIONES
+// ===========================
 client.on('interactionCreate', async interaction => {
 
-  // ===== SLASH COMMANDS =====
-  if (interaction.isChatInputCommand()) {
+    // ===========================
+    // DEPURACIÓN
+    // ===========================
+    console.log('Interacción detectada:', interaction.commandName || interaction.customId);
 
-    if (interaction.commandName === 'payments') {
-      const { embed, row } = createPaymentMessage();
-      await interaction.reply({ embeds: [embed], components: [row] });
+    // ===========================
+    // SLASH COMMAND /INFO
+    // ===========================
+    if (interaction.isCommand()) {
+        if (interaction.commandName === 'info') {
+            const embed = new MessageEmbed()
+                .setTitle("ℹ️ Información de Servicios")
+                .setDescription("Aquí van los servicios que ofrecemos...")
+                .setColor("#00ff88")
+                .setFooter("TMF Ventas")
+                .setImage(GIF_URL);
+
+            await interaction.reply({ embeds: [embed] });
+        }
+
+        // ===========================
+        // SLASH COMMAND /BUYINGS - REGISTRAR COMPRA
+        // ===========================
+        if (interaction.commandName === 'buyings') {
+            // Obtener usuario mencionado o por defecto quien ejecuta
+            const ticketUser = interaction.options.getUser('usuario') || interaction.user;
+
+            // Botones tipo de prio
+            const rowPrio = new MessageActionRow()
+                .addComponents(
+                    new MessageButton().setCustomId('prio_mensual').setLabel('Prio Mensual').setStyle('PRIMARY'),
+                    new MessageButton().setCustomId('prio_permanente').setLabel('Prio Permanente').setStyle('DANGER')
+                );
+
+            await interaction.reply({
+                content: `Selecciona el tipo de prio para ${ticketUser.username}`,
+                components: [rowPrio],
+                ephemeral: true
+            });
+        }
     }
 
-    if (interaction.commandName === 'info') {
+    // ===========================
+    // BOTONES INTERACTIVOS
+    // ===========================
+    if (interaction.isButton()) {
 
-      const embed = new EmbedBuilder()
-        .setColor('#0f0f0f')
-        .setTitle('🪽 ANGEL PACKAGE')
-        .setDescription(`
-• 1 MILLION PRIO  
-• NO CLIP  
-• CHATTAG  
-• KICKS PERMS  
+        // Botones tipo de prio
+        if (interaction.customId === "prio_mensual" || interaction.customId === "prio_permanente") {
+            const tipo = interaction.customId === "prio_mensual" ? "Mensual" : "Permanente";
+            interaction.message.tipoPrio = tipo;
 
-────────────────────
+            // Botones método de pago
+            const rowPago = new MessageActionRow()
+                .addComponents(
+                    new MessageButton().setCustomId('paypal').setLabel('PayPal').setStyle('PRIMARY'),
+                    new MessageButton().setCustomId('binance').setLabel('Binance').setStyle('SUCCESS'),
+                    new MessageButton().setCustomId('yappy').setLabel('Yappy').setStyle('DANGER')
+                );
 
-💵 $10 (monthly)  
-💎 $15 (perm)
-        `)
-        .setFooter({ text: 'Angel Store • Official Package' })
-        .setTimestamp();
+            await interaction.reply({
+                content: `Selecciona el método de pago para ${tipo}`,
+                components: [rowPago],
+                ephemeral: true
+            });
+            return;
+        }
 
-      await interaction.reply({ embeds: [embed] });
+        // Botones método de pago
+        if (['paypal', 'binance', 'yappy'].includes(interaction.customId)) {
+            const metodo = interaction.customId.charAt(0).toUpperCase() + interaction.customId.slice(1);
+            const tipo = interaction.message.tipoPrio || "Mensual";
+
+            // Usuario original
+            const ticketUser = interaction.message.interaction?.options?.getUser('usuario') || interaction.user;
+            const ticketUserId = ticketUser.id;
+
+            // Embed final
+            const embed = new MessageEmbed()
+                .setTitle("🧾 Compra registrada")
+                .setColor("#00ff88")
+                .addFields(
+                    { name: "👤 Usuario", value: `<@${ticketUserId}>`, inline: true },
+                    { name: "🆔 Discord ID", value: ticketUserId, inline: true },
+                    { name: "📦 Producto", value: "Prio FiveM", inline: true },
+                    { name: "⏱ Duración", value: tipo, inline: true },
+                    { name: "💰 Método de Pago", value: metodo, inline: true },
+                    { name: "👮 Registrado por", value: `<@${interaction.user.id}>`, inline: true }
+                )
+                .setImage(GIF_URL)
+                .setFooter("Sistema de ventas TMF")
+                .setTimestamp();
+
+            const logChannel = client.channels.cache.get(CHANNEL_VENTAS);
+            if (logChannel) logChannel.send({ embeds: [embed] });
+
+            await interaction.reply({ content: `✅ Compra registrada: ${tipo} / ${metodo}`, ephemeral: true });
+        }
     }
-  }
 
-  // ===== RESPUESTAS A BOTONES =====
-  if (interaction.isButton()) {
-
-    switch (interaction.customId) {
-
-      case 'binance':
-        await interaction.reply({ 
-          content: '🪙 Binance UID: 160027763',
-          ephemeral: true 
-        });
-        break;
-
-      case 'yappy':
-        await interaction.reply({ 
-          content: '📱 Yappy: 64135496',
-          ephemeral: true 
-        });
-        break;
-
-      case 'zelle':
-        await interaction.reply({ 
-          content: '🏦 Zelle: pableragalvisbolivar@gmail.com',
-          ephemeral: true 
-        });
-        break;
-    }
-  }
 });
 
-// ===== REGISTRO SLASH COMMANDS =====
-const commands = [
-  new SlashCommandBuilder()
-    .setName('payments')
-    .setDescription('Show official payment methods')
-    .toJSON(),
-
-  new SlashCommandBuilder()
-    .setName('info')
-    .setDescription('Show Angel package information')
-    .toJSON()
-];
-
-const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
-
-(async () => {
-  try {
-    console.log('Registrando comandos slash...');
-    await rest.put(
-      Routes.applicationGuildCommands(
-        process.env.CLIENT_ID,
-        process.env.GUILD_ID
-      ),
-      { body: commands },
-    );
-    console.log('Comandos registrados correctamente.');
-  } catch (error) {
-    console.error(error);
-  }
-})();
-
-client.once('ready', () => {
-  console.log(`Bot listo como ${client.user.tag}`);
-});
-
+// ===========================
+// LOGIN DEL BOT
+// ===========================
 client.login(process.env.TOKEN);
