@@ -1,157 +1,96 @@
 require('dotenv').config();
 const { 
-  Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder,
-  ButtonBuilder, ButtonStyle, SlashCommandBuilder,
-  REST, Routes, AttachmentBuilder
+  Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, 
+  ButtonBuilder, ButtonStyle, SlashCommandBuilder, REST, Routes 
 } = require('discord.js');
 
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+const client = new Client({ 
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] 
 });
 
 const { TOKEN, CLIENT_ID, GUILD_ID } = process.env;
-
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-// COMANDOS
+// 1. REGISTRO DE COMANDOS
 const commands = [
-  new SlashCommandBuilder()
-    .setName('payments')
-    .setDescription('Show payment methods | Mostrar métodos de pago'),
-
-  new SlashCommandBuilder()
-    .setName('info')
-    .setDescription('Show service info | Mostrar información del servicio')
-].map(c => c.toJSON());
+  new SlashCommandBuilder().setName('payments').setDescription('Mostrar métodos de pago'),
+  new SlashCommandBuilder().setName('info').setDescription('Mostrar info del servicio')
+].map(cmd => cmd.toJSON());
 
 (async () => {
   try {
-    console.log("🔄 Syncing commands...");
-    await rest.put(
-      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: commands }
-    );
-    console.log("✅ Commands updated");
+    console.log('⏳ Sincronizando comandos estéticos...');
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
+    console.log('✅ Sistema listo y actualizado.');
   } catch (err) {
-    console.error(err);
+    console.error('❌ Error:', err);
   }
 })();
 
-client.once('ready', () => {
-  console.log(`🤖 Bot listo como ${client.user.tag}`);
-});
-
 client.on('interactionCreate', async interaction => {
-
+  
+  // MANEJO DE COMANDOS SLASH
   if (interaction.isChatInputCommand()) {
-
-    const gif = new AttachmentBuilder('./assets/angel.gif');
-
-    // PAYMENTS
-    if (interaction.commandName === "payments") {
-
+    if (interaction.commandName === 'payments') {
       const embed = new EmbedBuilder()
-        .setTitle("💰 PAYMENT METHODS | MÉTODOS DE PAGO")
+        .setTitle('─── · 。ﾟ☆: *. 💰 PAYMENT METHODS .* :☆ﾟ. ───')
         .setDescription(
-`Select a payment method below
-Selecciona un método de pago abajo
-
-🏦 Zelle / Binance → Click button
-💳 CashApp / PayPal → Direct payment
-
-After paying send proof to an admin.
-Después de pagar envía el comprobante.`
+          '**¡Hola! Para adquirir nuestros servicios, elige un método:**\n\n' +
+          '> 🏦 **Zelle & Binance:** Haz clic en los botones azules abajo.\n' +
+          '> 💳 **CashApp & PayPal:** Usa los botones de enlace directo.\n\n' +
+          '*Una vez realizado el pago, envía el comprobante a un administrador.*'
         )
-        .setColor(0x2B2D31)
-        .setImage("attachment://angel.gif")
-        .setFooter({ text: "ANGEL SERVICE" })
+        .addFields(
+          { name: '✨ Disponibilidad', value: '🟢 24/7 Instantáneo', inline: true },
+          { name: '🛡️ Seguridad', value: '🔒 Transacción Segura', inline: true }
+        )
+        .setColor(0x2B2D31) 
+        .setImage('https://cdn.discordapp.com')
+        .setFooter({ text: 'ANGEL SERVICE • Elige tu método', iconURL: interaction.guild.iconURL() })
         .setTimestamp();
 
       const rowLinks = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setLabel("CashApp")
-          .setStyle(ButtonStyle.Link)
-          .setURL("https://cash.app"),
-
-        new ButtonBuilder()
-          .setLabel("PayPal")
-          .setStyle(ButtonStyle.Link)
-          .setURL("https://paypal.me")
+        new ButtonBuilder().setLabel('CashApp').setStyle(ButtonStyle.Link).setURL('https://cash.app'),
+        new ButtonBuilder().setLabel('PayPal').setStyle(ButtonStyle.Link).setURL('https://www.paypal.me')
       );
 
-      const rowButtons = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("zelle")
-          .setLabel("Zelle")
-          .setEmoji("🏦")
-          .setStyle(ButtonStyle.Primary),
-
-        new ButtonBuilder()
-          .setCustomId("binance")
-          .setLabel("Binance ID")
-          .setEmoji("🟡")
-          .setStyle(ButtonStyle.Primary)
+      const rowMethods = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('ver_zelle').setLabel('Zelle').setStyle(ButtonStyle.Primary).setEmoji('🏦'),
+        new ButtonBuilder().setCustomId('ver_binance').setLabel('Binance ID').setStyle(ButtonStyle.Primary).setEmoji('🟡')
       );
 
-      await interaction.reply({
-        embeds: [embed],
-        components: [rowLinks, rowButtons],
-        files: [gif]
-      });
-
+      await interaction.reply({ embeds: [embed], components: [rowLinks, rowMethods] });
     }
 
-    // INFO
-    if (interaction.commandName === "info") {
-
+    if (interaction.commandName === 'info') {
       const embed = new EmbedBuilder()
-        .setTitle("👼 ANGEL SERVICE")
-        .setDescription(
-`Services | Servicios
-
-• 1 MILLION PRIO
-• NO CLIP
-• CHATTAG
-• KICKS PERMS
-
-━━━━━━━━━━━━━━
-
-Prices | Precios
-
-• $10 Monthly
-• $15 Permanent`
-        )
+        .setTitle('👼 ANGEL INFO')
+        .setDescription(`• 1 MILLION PRIO\n• NO CLIP\n• CHATTAG\n• KICKS PERMS\n—————————————————————\n• $10 (monthly)\n• $15 (perm)`)
         .setColor(0x00FFFF)
-        .setImage("attachment://angel.gif")
-        .setFooter({ text: "Angel Service" });
+        .setImage('https://cdn.discordapp.com');
 
-      await interaction.reply({
-        embeds: [embed],
-        files: [gif]
-      });
-
+      await interaction.reply({ embeds: [embed] });
     }
   }
 
-  // BOTONES
+  // MANEJO DE BOTONES (LOGICA DE RESPUESTA)
   if (interaction.isButton()) {
-
-    if (interaction.customId === "zelle") {
-      await interaction.reply({
-        content: "🏦 **Zelle Email**\n`pableragalvisbolivar@gmail.com`",
-        ephemeral: true
-      });
+    try {
+      if (interaction.customId === 'ver_zelle') {
+        await interaction.reply({ 
+          content: '🏦 **Información de Zelle:**\nCorreo: `pableragalvisbolivar@gmail.com`', 
+          ephemeral: true 
+        });
+      } else if (interaction.customId === 'ver_binance') {
+        await interaction.reply({ 
+          content: '🟡 **Información de Binance:**\nID: `160027763`', 
+          ephemeral: true 
+        });
+      }
+    } catch (error) {
+      console.error('Error al responder al botón:', error);
     }
-
-    if (interaction.customId === "binance") {
-      await interaction.reply({
-        content: "🟡 **Binance Pay ID**\n`160027763`",
-        ephemeral: true
-      });
-    }
-
   }
-
 });
 
 client.login(TOKEN);
