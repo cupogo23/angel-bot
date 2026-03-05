@@ -6,7 +6,8 @@ const {
   Routes,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  PermissionsBitField
 } = require('discord.js');
 
 const { REST } = require('@discordjs/rest');
@@ -20,7 +21,7 @@ const client = new Client({
   ]
 });
 
-// ===== EMBED + BOTONES =====
+// ===== EMBED + BOTONES PAYMENTS =====
 function createPaymentMessage() {
 
   const embed = new EmbedBuilder()
@@ -32,7 +33,8 @@ function createPaymentMessage() {
 🇺🇸 After completing the payment, please send the receipt to staff.
 `)
     .setImage('https://cdn.discordapp.com/attachments/1478818162106433618/1478821886493458574/angelgg.gif')
-    .setFooter({ text: 'Angel Store • Secure Payments' });
+    .setFooter({ text: 'Angel Store • Secure Payments' })
+    .setTimestamp();
 
   const row = new ActionRowBuilder()
     .addComponents(
@@ -60,56 +62,79 @@ function createPaymentMessage() {
   return { embed, row };
 }
 
-// ===== COMANDO CLÁSICO =====
-client.on('messageCreate', message => {
-  if (message.content === '!pagos') {
-    const { embed, row } = createPaymentMessage();
-    message.channel.send({ embeds: [embed], components: [row] });
-  }
-});
-
-// ===== SLASH COMMAND =====
+// ===== EVENTO INTERACCIONES =====
 client.on('interactionCreate', async interaction => {
 
+  // ===== SLASH COMMANDS =====
   if (interaction.isChatInputCommand()) {
+
     if (interaction.commandName === 'payments') {
       const { embed, row } = createPaymentMessage();
       await interaction.reply({ embeds: [embed], components: [row] });
+    }
+
+    if (interaction.commandName === 'info') {
+
+      const embed = new EmbedBuilder()
+        .setColor('#0f0f0f')
+        .setTitle('🪽 ANGEL PACKAGE')
+        .setDescription(`
+• 1 MILLION PRIO  
+• NO CLIP  
+• CHATTAG  
+• KICKS PERMS  
+
+────────────────────
+
+💵 $10 (monthly)  
+💎 $15 (perm)
+        `)
+        .setFooter({ text: 'Angel Store • Official Package' })
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [embed] });
     }
   }
 
   // ===== RESPUESTAS A BOTONES =====
   if (interaction.isButton()) {
 
-    if (interaction.customId === 'binance') {
-      await interaction.reply({ 
-        content: '🪙 Binance UID: 160027763',
-        ephemeral: true 
-      });
-    }
+    switch (interaction.customId) {
 
-    if (interaction.customId === 'yappy') {
-      await interaction.reply({ 
-        content: '📱 Yappy: 64135496',
-        ephemeral: true 
-      });
-    }
+      case 'binance':
+        await interaction.reply({ 
+          content: '🪙 Binance UID: 160027763',
+          ephemeral: true 
+        });
+        break;
 
-    if (interaction.customId === 'zelle') {
-      await interaction.reply({ 
-        content: '🏦 Zelle: pableragalvisbolivar@gmail.com',
-        ephemeral: true 
-      });
-    }
+      case 'yappy':
+        await interaction.reply({ 
+          content: '📱 Yappy: 64135496',
+          ephemeral: true 
+        });
+        break;
 
+      case 'zelle':
+        await interaction.reply({ 
+          content: '🏦 Zelle: pableragalvisbolivar@gmail.com',
+          ephemeral: true 
+        });
+        break;
+    }
   }
 });
 
-// ===== REGISTRO SLASH INSTANTÁNEO =====
+// ===== REGISTRO SLASH COMMANDS =====
 const commands = [
   new SlashCommandBuilder()
     .setName('payments')
     .setDescription('Show official payment methods')
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('info')
+    .setDescription('Show Angel package information')
     .toJSON()
 ];
 
@@ -117,15 +142,15 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
   try {
-    console.log('Registrando comando slash...');
+    console.log('Registrando comandos slash...');
     await rest.put(
       Routes.applicationGuildCommands(
         process.env.CLIENT_ID,
-        '1472410075439042707'
+        process.env.GUILD_ID
       ),
       { body: commands },
     );
-    console.log('Comando /payments registrado.');
+    console.log('Comandos registrados correctamente.');
   } catch (error) {
     console.error(error);
   }
