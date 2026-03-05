@@ -49,10 +49,11 @@ client.on('interactionCreate', async interaction => {
     if (interaction.commandName === 'payments') {
         const row = new MessageActionRow()
             .addComponents(
-                new MessageButton().setCustomId('paypal').setLabel('PayPal').setStyle('PRIMARY'),
-                new MessageButton().setCustomId('binance').setLabel('Binance').setStyle('SUCCESS'),
-                new MessageButton().setCustomId('yappy').setLabel('Yappy').setStyle('DANGER'),
-                new MessageButton().setCustomId('zelle').setLabel('Zelle').setStyle('SECONDARY')
+                new MessageButton().setLabel('PayPal').setStyle('LINK').setURL('https://www.paypal.me/Pogo2310'),
+                new MessageButton().setLabel('Zelle').setStyle('LINK').setURL('mailto:pableragalvisbolivar@gmail.com'),
+                new MessageButton().setLabel('Binance').setStyle('LINK').setURL('https://www.binance.com/en/my/wallet/account/160027763'),
+                new MessageButton().setLabel('Yappy').setStyle('LINK').setURL('https://yappy.app/'), // Si quieres tu enlace directo, ponlo aquí
+                new MessageButton().setLabel('Cash App').setStyle('LINK').setURL('https://cash.app/$Pabl0716')
             );
 
         const embed = new MessageEmbed()
@@ -64,18 +65,6 @@ client.on('interactionCreate', async interaction => {
 
         await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
     }
-});
-
-// ===========================
-// MANEJO DE BOTONES
-// ===========================
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isButton()) return;
-
-    const metodo = interaction.customId.charAt(0).toUpperCase() + interaction.customId.slice(1);
-
-    // Confirmación privada al usuario
-    await interaction.reply({ content: `✅ Has seleccionado: ${metodo}`, ephemeral: true });
 });
 
 // ===========================
