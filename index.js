@@ -1,87 +1,157 @@
-// ===========================
-// INDEX.JS - BOT VENTAS TMF
-// ===========================
+require('dotenv').config();
+const { 
+  Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder,
+  ButtonBuilder, ButtonStyle, SlashCommandBuilder,
+  REST, Routes, AttachmentBuilder
+} = require('discord.js');
 
-const { Client, Intents, MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
-
-const client = new Client({ 
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] 
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds]
 });
 
-// ===========================
-// CONSTANTES
-// ===========================
-const GIF_URL = "https://cdn.discordapp.com/attachments/1473556214251257856/1473557047760130149/f4f4af726dc651a4565f826aaff3ef6b.gif";
+const { TOKEN, CLIENT_ID, GUILD_ID } = process.env;
 
-// Métodos de pago
-const pagos = [
-    { id: 'paypal', label: 'PayPal', url: 'https://www.paypal.me/Pogo2310', style: 'PRIMARY' },
-    { id: 'zelle', label: 'Zelle', url: 'mailto:pableragalvisbolivar@gmail.com', style: 'SUCCESS' },
-    { id: 'binance', label: 'Binance', url: 'https://www.binance.com/en/my/wallet', style: 'PRIMARY' },
-    { id: 'yappy', label: 'Yappy', url: 'https://yappy.com', style: 'DANGER' },
-    { id: 'cashapp', label: 'Cash App', url: 'https://cash.app/$Pabl0716', style: 'SUCCESS' }
-];
+const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-// ===========================
-// BOT LISTO
-// ===========================
+// COMANDOS
+const commands = [
+  new SlashCommandBuilder()
+    .setName('payments')
+    .setDescription('Show payment methods | Mostrar métodos de pago'),
+
+  new SlashCommandBuilder()
+    .setName('info')
+    .setDescription('Show service info | Mostrar información del servicio')
+].map(c => c.toJSON());
+
+(async () => {
+  try {
+    console.log("🔄 Syncing commands...");
+    await rest.put(
+      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+      { body: commands }
+    );
+    console.log("✅ Commands updated");
+  } catch (err) {
+    console.error(err);
+  }
+})();
+
 client.once('ready', () => {
-    console.log(`Bot listo como ${client.user.tag}`);
+  console.log(`🤖 Bot listo como ${client.user.tag}`);
 });
 
-// ===========================
-// INTERACCIONES
-// ===========================
 client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
 
-    // ===========================
-    // /info
-    // ===========================
-    if (interaction.commandName === 'info') {
-        const embed = new MessageEmbed()
-            .setTitle("ℹ️ Información de Servicios")
-            .setDescription(`# :wing: ANGEL
-# •1 MILLION PRIO
-# •NO CLIP
-# • CHATTAG
-# • KICKS PERMS
-—————————————————————-
-# • $10 (monthly)
-# • $15 (perm)`)
-            .setColor("#00ff88")
-            .setImage(GIF_URL)
-            .setFooter("TMF Ventas");
+  if (interaction.isChatInputCommand()) {
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+    const gif = new AttachmentBuilder('./assets/angel.gif');
+
+    // PAYMENTS
+    if (interaction.commandName === "payments") {
+
+      const embed = new EmbedBuilder()
+        .setTitle("💰 PAYMENT METHODS | MÉTODOS DE PAGO")
+        .setDescription(
+`Select a payment method below
+Selecciona un método de pago abajo
+
+🏦 Zelle / Binance → Click button
+💳 CashApp / PayPal → Direct payment
+
+After paying send proof to an admin.
+Después de pagar envía el comprobante.`
+        )
+        .setColor(0x2B2D31)
+        .setImage("attachment://angel.gif")
+        .setFooter({ text: "ANGEL SERVICE" })
+        .setTimestamp();
+
+      const rowLinks = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setLabel("CashApp")
+          .setStyle(ButtonStyle.Link)
+          .setURL("https://cash.app"),
+
+        new ButtonBuilder()
+          .setLabel("PayPal")
+          .setStyle(ButtonStyle.Link)
+          .setURL("https://paypal.me")
+      );
+
+      const rowButtons = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("zelle")
+          .setLabel("Zelle")
+          .setEmoji("🏦")
+          .setStyle(ButtonStyle.Primary),
+
+        new ButtonBuilder()
+          .setCustomId("binance")
+          .setLabel("Binance ID")
+          .setEmoji("🟡")
+          .setStyle(ButtonStyle.Primary)
+      );
+
+      await interaction.reply({
+        embeds: [embed],
+        components: [rowLinks, rowButtons],
+        files: [gif]
+      });
+
     }
 
-    // ===========================
-    // /payments
-    // ===========================
-    if (interaction.commandName === 'payments') {
-        const row = new MessageActionRow();
-        pagos.forEach(p => {
-            row.addComponents(
-                new MessageButton()
-                    .setLabel(p.label)
-                    .setStyle('LINK')
-                    .setURL(p.url)
-            );
-        });
+    // INFO
+    if (interaction.commandName === "info") {
 
-        const embed = new MessageEmbed()
-            .setTitle("💰 Métodos de pago")
-            .setDescription("Selecciona tu método de pago haciendo clic en el botón correspondiente.")
-            .setColor("#FFAA28")
-            .setImage(GIF_URL)
-            .setTimestamp();
+      const embed = new EmbedBuilder()
+        .setTitle("👼 ANGEL SERVICE")
+        .setDescription(
+`Services | Servicios
 
-        await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+• 1 MILLION PRIO
+• NO CLIP
+• CHATTAG
+• KICKS PERMS
+
+━━━━━━━━━━━━━━
+
+Prices | Precios
+
+• $10 Monthly
+• $15 Permanent`
+        )
+        .setColor(0x00FFFF)
+        .setImage("attachment://angel.gif")
+        .setFooter({ text: "Angel Service" });
+
+      await interaction.reply({
+        embeds: [embed],
+        files: [gif]
+      });
+
     }
+  }
+
+  // BOTONES
+  if (interaction.isButton()) {
+
+    if (interaction.customId === "zelle") {
+      await interaction.reply({
+        content: "🏦 **Zelle Email**\n`pableragalvisbolivar@gmail.com`",
+        ephemeral: true
+      });
+    }
+
+    if (interaction.customId === "binance") {
+      await interaction.reply({
+        content: "🟡 **Binance Pay ID**\n`160027763`",
+        ephemeral: true
+      });
+    }
+
+  }
+
 });
 
-// ===========================
-// LOGIN DEL BOT
-// ===========================
-client.login(process.env.TOKEN);
+client.login(TOKEN);

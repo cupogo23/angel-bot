@@ -6,12 +6,20 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cupogo23/angel-bot.git"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/cupogo23/angel-bot/issues"
+  },
+  "homepage": "https://github.com/cupogo23/angel-bot#readme",
   "dependencies": {
-    "discord.js": "^13.17.1",
+    "discord.js": "^14.25.1",
     "dotenv": "^17.3.1"
   }
 }
