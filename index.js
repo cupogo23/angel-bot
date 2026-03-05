@@ -1,13 +1,17 @@
 // ===========================
-// INDEX.JS COMPLETO - BOT VENTAS TMF
+// INDEX.JS COMPLETO - BOT VENTAS TMF (Discord.js v14)
 // ===========================
 
-const { Client, Intents, MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
-const client = new Client({ intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MEMBERS
-] });
+const { Client, GatewayIntentBits, Partials, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMembers
+    ],
+    partials: [Partials.Channel] // Para mensajes parciales si se necesita
+});
 
 const CHANNEL_VENTAS = "1472426456108761159"; // Canal de ventas
 const GIF_URL = "https://cdn.discordapp.com/attachments/1473556214251257856/1473557047760130149/f4f4af726dc651a4565f826aaff3ef6b.gif";
@@ -24,38 +28,30 @@ client.once('ready', () => {
 // ===========================
 client.on('interactionCreate', async interaction => {
 
-    // ===========================
     // DEPURACIÓN
-    // ===========================
     console.log('Interacción detectada:', interaction.commandName || interaction.customId);
 
-    // ===========================
-    // SLASH COMMAND /INFO
-    // ===========================
-    if (interaction.isCommand()) {
+    // SLASH COMMANDS
+    if (interaction.isChatInputCommand()) {
+
         if (interaction.commandName === 'info') {
-            const embed = new MessageEmbed()
+            const embed = new EmbedBuilder()
                 .setTitle("ℹ️ Información de Servicios")
                 .setDescription("Aquí van los servicios que ofrecemos...")
                 .setColor("#00ff88")
-                .setFooter("TMF Ventas")
+                .setFooter({ text: "TMF Ventas" })
                 .setImage(GIF_URL);
 
             await interaction.reply({ embeds: [embed] });
         }
 
-        // ===========================
-        // SLASH COMMAND /BUYINGS - REGISTRAR COMPRA
-        // ===========================
         if (interaction.commandName === 'buyings') {
-            // Obtener usuario mencionado o por defecto quien ejecuta
             const ticketUser = interaction.options.getUser('usuario') || interaction.user;
 
-            // Botones tipo de prio
-            const rowPrio = new MessageActionRow()
+            const rowPrio = new ActionRowBuilder()
                 .addComponents(
-                    new MessageButton().setCustomId('prio_mensual').setLabel('Prio Mensual').setStyle('PRIMARY'),
-                    new MessageButton().setCustomId('prio_permanente').setLabel('Prio Permanente').setStyle('DANGER')
+                    new ButtonBuilder().setCustomId('prio_mensual').setLabel('Prio Mensual').setStyle(ButtonStyle.Primary),
+                    new ButtonBuilder().setCustomId('prio_permanente').setLabel('Prio Permanente').setStyle(ButtonStyle.Danger)
                 );
 
             await interaction.reply({
@@ -66,9 +62,7 @@ client.on('interactionCreate', async interaction => {
         }
     }
 
-    // ===========================
-    // BOTONES INTERACTIVOS
-    // ===========================
+    // BOTONES
     if (interaction.isButton()) {
 
         // Botones tipo de prio
@@ -76,12 +70,11 @@ client.on('interactionCreate', async interaction => {
             const tipo = interaction.customId === "prio_mensual" ? "Mensual" : "Permanente";
             interaction.message.tipoPrio = tipo;
 
-            // Botones método de pago
-            const rowPago = new MessageActionRow()
+            const rowPago = new ActionRowBuilder()
                 .addComponents(
-                    new MessageButton().setCustomId('paypal').setLabel('PayPal').setStyle('PRIMARY'),
-                    new MessageButton().setCustomId('binance').setLabel('Binance').setStyle('SUCCESS'),
-                    new MessageButton().setCustomId('yappy').setLabel('Yappy').setStyle('DANGER')
+                    new ButtonBuilder().setCustomId('paypal').setLabel('PayPal').setStyle(ButtonStyle.Primary),
+                    new ButtonBuilder().setCustomId('binance').setLabel('Binance').setStyle(ButtonStyle.Success),
+                    new ButtonBuilder().setCustomId('yappy').setLabel('Yappy').setStyle(ButtonStyle.Danger)
                 );
 
             await interaction.reply({
@@ -92,17 +85,14 @@ client.on('interactionCreate', async interaction => {
             return;
         }
 
-        // Botones método de pago
+        // Botones de método de pago
         if (['paypal', 'binance', 'yappy'].includes(interaction.customId)) {
             const metodo = interaction.customId.charAt(0).toUpperCase() + interaction.customId.slice(1);
             const tipo = interaction.message.tipoPrio || "Mensual";
-
-            // Usuario original
             const ticketUser = interaction.message.interaction?.options?.getUser('usuario') || interaction.user;
             const ticketUserId = ticketUser.id;
 
-            // Embed final
-            const embed = new MessageEmbed()
+            const embed = new EmbedBuilder()
                 .setTitle("🧾 Compra registrada")
                 .setColor("#00ff88")
                 .addFields(
@@ -114,7 +104,7 @@ client.on('interactionCreate', async interaction => {
                     { name: "👮 Registrado por", value: `<@${interaction.user.id}>`, inline: true }
                 )
                 .setImage(GIF_URL)
-                .setFooter("Sistema de ventas TMF")
+                .setFooter({ text: "Sistema de ventas TMF" })
                 .setTimestamp();
 
             const logChannel = client.channels.cache.get(CHANNEL_VENTAS);
