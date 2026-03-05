@@ -1,16 +1,14 @@
 // ===========================
-// INDEX.JS COMPLETO - BOT VENTAS TMF (Discord.js v14)
+// INDEX.JS COMPLETO - BOT VENTAS TMF (Compatible v13)
 // ===========================
 
-const { Client, GatewayIntentBits, Partials, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
-
+const { Client, Intents, MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const client = new Client({
     intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMembers
-    ],
-    partials: [Partials.Channel] // Para mensajes parciales si se necesita
+        Intents.FLAGS.GUILDS,
+        Intents.FLAGS.GUILD_MESSAGES,
+        Intents.FLAGS.GUILD_MEMBERS
+    ]
 });
 
 const CHANNEL_VENTAS = "1472426456108761159"; // Canal de ventas
@@ -24,34 +22,37 @@ client.once('ready', () => {
 });
 
 // ===========================
-// UN SOLO LISTENER PARA INTERACCIONES
+// ESCUCHA DE INTERACCIONES
 // ===========================
 client.on('interactionCreate', async interaction => {
 
-    // DEPURACIÓN
     console.log('Interacción detectada:', interaction.commandName || interaction.customId);
 
+    // ---------------------------
     // SLASH COMMANDS
-    if (interaction.isChatInputCommand()) {
+    // ---------------------------
+    if (interaction.isCommand()) {
 
+        // /info
         if (interaction.commandName === 'info') {
-            const embed = new EmbedBuilder()
+            const embed = new MessageEmbed()
                 .setTitle("ℹ️ Información de Servicios")
-                .setDescription("Aquí van los servicios que ofrecemos...")
+                .setDescription("Bienvenido a TMF Ventas, aquí ofrecemos los mejores servicios para tu experiencia FiveM:\n\n- Prio Mensual: acceso limitado de 30 días\n- Prio Permanente: acceso ilimitado\n- Métodos de pago: PayPal, Binance, Yappy")
                 .setColor("#00ff88")
-                .setFooter({ text: "TMF Ventas" })
+                .setFooter("TMF Ventas")
                 .setImage(GIF_URL);
 
             await interaction.reply({ embeds: [embed] });
         }
 
+        // /buyings
         if (interaction.commandName === 'buyings') {
             const ticketUser = interaction.options.getUser('usuario') || interaction.user;
 
-            const rowPrio = new ActionRowBuilder()
+            const rowPrio = new MessageActionRow()
                 .addComponents(
-                    new ButtonBuilder().setCustomId('prio_mensual').setLabel('Prio Mensual').setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder().setCustomId('prio_permanente').setLabel('Prio Permanente').setStyle(ButtonStyle.Danger)
+                    new MessageButton().setCustomId('prio_mensual').setLabel('Prio Mensual').setStyle('PRIMARY'),
+                    new MessageButton().setCustomId('prio_permanente').setLabel('Prio Permanente').setStyle('DANGER')
                 );
 
             await interaction.reply({
@@ -60,21 +61,31 @@ client.on('interactionCreate', async interaction => {
                 ephemeral: true
             });
         }
+
+        // /payments
+        if (interaction.commandName === 'payments') {
+            await interaction.reply({
+                content: "Métodos de pago disponibles:\n- PayPal\n- Binance\n- Yappy",
+                ephemeral: true
+            });
+        }
     }
 
+    // ---------------------------
     // BOTONES
+    // ---------------------------
     if (interaction.isButton()) {
 
-        // Botones tipo de prio
+        // Tipo de prio
         if (interaction.customId === "prio_mensual" || interaction.customId === "prio_permanente") {
             const tipo = interaction.customId === "prio_mensual" ? "Mensual" : "Permanente";
             interaction.message.tipoPrio = tipo;
 
-            const rowPago = new ActionRowBuilder()
+            const rowPago = new MessageActionRow()
                 .addComponents(
-                    new ButtonBuilder().setCustomId('paypal').setLabel('PayPal').setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder().setCustomId('binance').setLabel('Binance').setStyle(ButtonStyle.Success),
-                    new ButtonBuilder().setCustomId('yappy').setLabel('Yappy').setStyle(ButtonStyle.Danger)
+                    new MessageButton().setCustomId('paypal').setLabel('PayPal').setStyle('PRIMARY'),
+                    new MessageButton().setCustomId('binance').setLabel('Binance').setStyle('SUCCESS'),
+                    new MessageButton().setCustomId('yappy').setLabel('Yappy').setStyle('DANGER')
                 );
 
             await interaction.reply({
@@ -85,14 +96,14 @@ client.on('interactionCreate', async interaction => {
             return;
         }
 
-        // Botones de método de pago
-        if (['paypal', 'binance', 'yappy'].includes(interaction.customId)) {
+        // Método de pago
+        if (['paypal','binance','yappy'].includes(interaction.customId)) {
             const metodo = interaction.customId.charAt(0).toUpperCase() + interaction.customId.slice(1);
             const tipo = interaction.message.tipoPrio || "Mensual";
             const ticketUser = interaction.message.interaction?.options?.getUser('usuario') || interaction.user;
             const ticketUserId = ticketUser.id;
 
-            const embed = new EmbedBuilder()
+            const embed = new MessageEmbed()
                 .setTitle("🧾 Compra registrada")
                 .setColor("#00ff88")
                 .addFields(
@@ -104,13 +115,16 @@ client.on('interactionCreate', async interaction => {
                     { name: "👮 Registrado por", value: `<@${interaction.user.id}>`, inline: true }
                 )
                 .setImage(GIF_URL)
-                .setFooter({ text: "Sistema de ventas TMF" })
+                .setFooter("Sistema de ventas TMF")
                 .setTimestamp();
 
             const logChannel = client.channels.cache.get(CHANNEL_VENTAS);
             if (logChannel) logChannel.send({ embeds: [embed] });
 
-            await interaction.reply({ content: `✅ Compra registrada: ${tipo} / ${metodo}`, ephemeral: true });
+            await interaction.reply({
+                content: `✅ Compra registrada: ${tipo} / ${metodo}`,
+                ephemeral: true
+            });
         }
     }
 
