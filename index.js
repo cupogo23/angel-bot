@@ -75,11 +75,11 @@ client.on('interactionCreate', async interaction => {
 
 if (!interaction.isChatInputCommand()) return;
 
+await interaction.deferReply();
 
 
 
-
-/* INFO COMMAND */
+/* INFO */
 
 if (interaction.commandName === 'info') {
 
@@ -110,15 +110,13 @@ const embed = new EmbedBuilder()
 • $15 (perm)
 `);
 
-interaction.reply({ embeds: [embed] });
+return interaction.editReply({ embeds: [embed] });
 
 }
 
 
 
-
-
-/* PAYMENTS COMMAND */
+/* PAYMENTS */
 
 if (interaction.commandName === 'payments') {
 
@@ -129,6 +127,7 @@ const embed = new EmbedBuilder()
 
 const row = new ActionRowBuilder()
 .addComponents(
+
 new ButtonBuilder()
 .setLabel("CashApp")
 .setStyle(ButtonStyle.Link)
@@ -148,9 +147,10 @@ new ButtonBuilder()
 .setLabel("Binance")
 .setStyle(ButtonStyle.Link)
 .setURL("https://binance.com")
+
 );
 
-interaction.reply({
+return interaction.editReply({
 embeds: [embed],
 components: [row]
 });
@@ -159,9 +159,7 @@ components: [row]
 
 
 
-
-
-/* LOG COMMAND */
+/* LOG */
 
 if (interaction.commandName === 'log') {
 
@@ -175,16 +173,15 @@ c => c.name === "buyins"
 );
 
 if (!channel) {
-return interaction.reply({ content: "Buyins channel not found.", ephemeral: true });
+return interaction.editReply({ content: "Buyins channel not found." });
 }
 
 const message = `USERID: ${user.id} — ${user} — $${price} • ${time} • ${type} 🎲`;
 
 channel.send(message);
 
-interaction.reply({
-content: "Purchase logged successfully.",
-ephemeral: true
+return interaction.editReply({
+content: "Purchase logged successfully."
 });
 
 }
