@@ -3,7 +3,6 @@ require('dotenv').config();
 const {
 Client,
 GatewayIntentBits,
-EmbedBuilder,
 SlashCommandBuilder,
 Routes,
 REST
@@ -65,7 +64,7 @@ console.error(error);
 }
 })();
 
-client.once('ready', () => {
+client.once('clientReady', () => {
 console.log(`Bot online as ${client.user.tag}`);
 });
 
@@ -75,60 +74,52 @@ if (!interaction.isChatInputCommand()) return;
 
 if (interaction.commandName === 'info') {
 
-const embed = new EmbedBuilder()
-.setTitle('🪽 ANGEL SERVICES')
-.setColor(0xffffff)
-.setDescription(`
-**ANGEL**
+interaction.reply({
+content: `# 🪽 ANGEL
+• 1 MILLION PRIO
+• NO CLIP
+• CHATTAG
+• KICKS PERMS
+—————————————————————
 
-• 1 MILLION PRIO  
-• NO CLIP  
-• CHATTAG  
-• KICKS PERMS  
-
-Price:
-• $10 (monthly)  
+• $10 (monthly)
 • $15 (perm)
 
-──────────────
+———————————————————
 
-**HORROR**
+<:Horror:1468742295993192663> HORROR
+• 1 MILLION PRIO
+• NO CLIP
+• CHATTAG
+• KICKS PERMS
+—————————————————————
 
-• 1 MILLION PRIO  
-• NO CLIP  
-• CHATTAG  
-• KICKS PERMS  
-
-Price:
-• $10 (monthly)  
+• $10 (monthly)
 • $15 (perm)
-`);
 
-interaction.reply({ embeds: [embed] });
+discord.gg/angeltmf`
+});
 
 }
 
 
 if (interaction.commandName === 'payments') {
 
-const embed = new EmbedBuilder()
-.setTitle('💳 Payment Methods')
-.setColor(0x00ff99)
-.setDescription(`
-CashApp  
+interaction.reply({
+content: `💳 **Payment Methods**
+
+CashApp
 https://cash.app/$Pabl0716
 
-Zelle  
+Zelle
 pableragalvisbolivar@gmail.com
 
-PayPal  
+PayPal
 https://www.paypal.me/Pogo2310
 
-Binance (USDT)  
-160027763
-`);
-
-interaction.reply({ embeds: [embed] });
+Binance (USDT)
+160027763`
+});
 
 }
 
