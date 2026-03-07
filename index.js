@@ -5,7 +5,11 @@ Client,
 GatewayIntentBits,
 SlashCommandBuilder,
 Routes,
-REST
+REST,
+ActionRowBuilder,
+ButtonBuilder,
+ButtonStyle,
+EmbedBuilder
 } = require('discord.js');
 
 const client = new Client({
@@ -44,7 +48,6 @@ option.setName('type')
 
 ].map(command => command.toJSON());
 
-
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
@@ -72,10 +75,19 @@ client.on('interactionCreate', async interaction => {
 
 if (!interaction.isChatInputCommand()) return;
 
+
+
+
+
+/* INFO COMMAND */
+
 if (interaction.commandName === 'info') {
 
-interaction.reply({
-content: `# 🪽 ANGEL
+const embed = new EmbedBuilder()
+.setColor(0xffffff)
+.setImage("https://cdn.discordapp.com/attachments/1473556214251257856/1473557047760130149/f4f4af726dc651a4565f826aaff3ef6b.gif")
+.setDescription(`
+# 🪽 ANGEL
 • 1 MILLION PRIO
 • NO CLIP
 • CHATTAG
@@ -87,7 +99,7 @@ content: `# 🪽 ANGEL
 
 ———————————————————
 
-<:Horror:1468742295993192663> HORROR
+# • HORROR
 • 1 MILLION PRIO
 • NO CLIP
 • CHATTAG
@@ -96,33 +108,60 @@ content: `# 🪽 ANGEL
 
 • $10 (monthly)
 • $15 (perm)
+`);
 
-discord.gg/angeltmf`
-});
+interaction.reply({ embeds: [embed] });
 
 }
 
+
+
+
+
+/* PAYMENTS COMMAND */
 
 if (interaction.commandName === 'payments') {
 
+const embed = new EmbedBuilder()
+.setTitle("💳 Payment Methods")
+.setDescription("Choose a payment method below")
+.setColor(0x00ff99);
+
+const row = new ActionRowBuilder()
+.addComponents(
+new ButtonBuilder()
+.setLabel("CashApp")
+.setStyle(ButtonStyle.Link)
+.setURL("https://cash.app/$Pabl0716"),
+
+new ButtonBuilder()
+.setLabel("PayPal")
+.setStyle(ButtonStyle.Link)
+.setURL("https://www.paypal.me/Pogo2310"),
+
+new ButtonBuilder()
+.setLabel("Zelle")
+.setStyle(ButtonStyle.Link)
+.setURL("https://google.com"),
+
+new ButtonBuilder()
+.setLabel("Binance")
+.setStyle(ButtonStyle.Link)
+.setURL("https://binance.com")
+);
+
 interaction.reply({
-content: `💳 **Payment Methods**
-
-CashApp
-https://cash.app/$Pabl0716
-
-Zelle
-pableragalvisbolivar@gmail.com
-
-PayPal
-https://www.paypal.me/Pogo2310
-
-Binance (USDT)
-160027763`
+embeds: [embed],
+components: [row]
 });
 
 }
 
+
+
+
+
+/* LOG COMMAND */
 
 if (interaction.commandName === 'log') {
 
