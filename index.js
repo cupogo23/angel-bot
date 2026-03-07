@@ -122,31 +122,34 @@ if (interaction.commandName === 'payments') {
 
 const embed = new EmbedBuilder()
 .setTitle("💳 Payment Methods")
-.setDescription("Choose a payment method below")
-.setColor(0x00ff99);
+.setColor(0x00ff99)
+.setImage("https://cdn.discordapp.com/attachments/1473556214251257856/1473557047760130149/f4f4af726dc651a4565f826aaff3ef6b.gif")
+.setDescription(`
+CashApp  
+https://cash.app/$Pabl0716
+
+Zelle  
+pableragalvisbolivar@gmail.com
+
+PayPal  
+https://www.paypal.me/Pogo2310
+
+Binance (USDT)  
+160027763
+`);
 
 const row = new ActionRowBuilder()
 .addComponents(
 
 new ButtonBuilder()
-.setLabel("CashApp")
+.setLabel("Pay with CashApp")
 .setStyle(ButtonStyle.Link)
 .setURL("https://cash.app/$Pabl0716"),
 
 new ButtonBuilder()
-.setLabel("PayPal")
+.setLabel("Pay with PayPal")
 .setStyle(ButtonStyle.Link)
-.setURL("https://www.paypal.me/Pogo2310"),
-
-new ButtonBuilder()
-.setLabel("Zelle")
-.setStyle(ButtonStyle.Link)
-.setURL("https://google.com"),
-
-new ButtonBuilder()
-.setLabel("Binance")
-.setStyle(ButtonStyle.Link)
-.setURL("https://binance.com")
+.setURL("https://www.paypal.me/Pogo2310")
 
 );
 
