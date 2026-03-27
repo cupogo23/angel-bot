@@ -16,6 +16,8 @@ const client = new Client({
 intents: [GatewayIntentBits.Guilds]
 });
 
+/* COMMANDS */
+
 const commands = [
 
 new SlashCommandBuilder()
@@ -39,12 +41,20 @@ option.setName('price')
 .setRequired(true))
 .addStringOption(option =>
 option.setName('time')
-.setDescription('Duration (monthly / perm)')
-.setRequired(true))
+.setDescription('Duration')
+.setRequired(true)
+.addChoices(
+    { name: 'Monthly', value: 'monthly' },
+    { name: 'Permanent', value: 'perm' }
+))
 .addStringOption(option =>
 option.setName('type')
 .setDescription('Product type')
-.setRequired(true))
+.setRequired(true)
+.addChoices(
+    { name: 'Angel', value: 'angel' },
+    { name: 'Horror', value: 'horror' }
+))
 
 ].map(command => command.toJSON());
 
@@ -67,17 +77,19 @@ console.error(error);
 }
 })();
 
-client.once('clientReady', () => {
+/* READY */
+
+client.once('ready', () => {
 console.log(`Bot online as ${client.user.tag}`);
 });
+
+/* INTERACTIONS */
 
 client.on('interactionCreate', async interaction => {
 
 if (!interaction.isChatInputCommand()) return;
 
 await interaction.deferReply();
-
-
 
 /* INFO */
 
@@ -87,34 +99,30 @@ const embed = new EmbedBuilder()
 .setColor(0xffffff)
 .setImage("https://cdn.discordapp.com/attachments/1473556214251257856/1473557047760130149/f4f4af726dc651a4565f826aaff3ef6b.gif")
 .setDescription(`
-# 🪽 ANGEL
-• 1 MILLION PRIO
-• NO CLIP
-• CHATTAG
-• KICKS PERMS
-—————————————————————
+## 🪽 ANGEL
+• 1M Priority Queue  
+• NoClip  
+• Custom Chat Tag  
+• Kick Permissions  
 
-• $10 (monthly)
-• $15 (perm)
+💰 $10 Monthly  
+💰 $15 Lifetime  
 
-———————————————————
+━━━━━━━━━━━━━━━━━━
 
-# • HORROR
-• 1 MILLION PRIO
-• NO CLIP
-• CHATTAG
-• KICKS PERMS
-—————————————————————
+## 👻 HORROR
+• 1M Priority Queue  
+• NoClip  
+• Custom Chat Tag  
+• Kick Permissions  
 
-• $10 (monthly)
-• $15 (perm)
+💰 $10 Monthly  
+💰 $15 Lifetime  
 `);
 
 return interaction.editReply({ embeds: [embed] });
 
 }
-
-
 
 /* PAYMENTS */
 
@@ -133,7 +141,7 @@ https://cash.app/$Pabl0716
 https://www.paypal.me/Pogo2310
 
 **Zelle**
-pableragalvisbolivar@gmail.com
+williamjrd2000@gmail.com
 
 **Binance (USDT ID)**
 160027763
@@ -162,8 +170,6 @@ components: [row]
 
 }
 
-
-
 /* LOG */
 
 if (interaction.commandName === 'log') {
@@ -173,24 +179,38 @@ const price = interaction.options.getInteger('price');
 const time = interaction.options.getString('time');
 const type = interaction.options.getString('type');
 
+/* FIX DEFINITIVO (NO FALLA) */
+let emoji = "🎲";
+
+if (type.includes("angel")) {
+    emoji = "🪽";
+} else if (type.includes("horror")) {
+    emoji = "ホ";
+}
+
+/* BUSCAR CANAL */
 const channel = interaction.guild.channels.cache.find(
-c => c.name === "buyins"
+    c => c.name === "buyins"
 );
 
 if (!channel) {
-return interaction.editReply({ content: "Buyins channel not found." });
+    return interaction.editReply({ content: "Buyins channel not found." });
 }
 
-const message = `USERID: ${user.id} — ${user} — $${price} • ${time} • ${type} 🎲`;
+/* MENSAJE */
+const message = `USERID: ${user.id} — ${user} — $${price} • ${time} • ${type} ${emoji}`;
 
+/* ENVIAR */
 channel.send(message);
 
 return interaction.editReply({
-content: "Purchase logged successfully."
+    content: "Purchase logged successfully."
 });
 
 }
 
 });
+
+/* LOGIN */
 
 client.login(process.env.TOKEN);
